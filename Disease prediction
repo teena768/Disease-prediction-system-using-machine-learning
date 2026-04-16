@@ -1,0 +1,56 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score
+import tkinter as tk
+from tkinter import messagebox
+data = pd.read_csv("disease_data.csv")
+X = data.drop("Diabetes", axis=1)
+y = data["Diabetes"]
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+model = LogisticRegression()
+model.fit(X_train, y_train)
+accuracy = accuracy_score(y_test, model.predict(X_test))
+print("Model Accuracy:", accuracy)I
+root = tk.Tk()
+root.title("Disease Prediction System")
+tk.Label(root, text="Age").grid(row=0, column=0)
+age_entry = tk.Entry(root)
+age_entry.grid(row=0, column=1)
+tk.Label(root, text="Blood Pressure").grid(row=1, column=0)
+bp_entry = tk.Entry(root)
+bp_entry.grid(row=1, column=1)
+tk.Label(root, text="Cholesterol").grid(row=2, column=0)
+chol_entry = tk.Entry(root)
+chol_entry.grid(row=2, column=1)
+
+# Prediction function
+def predict_disease():
+    try:
+        age = float(age_entry.get())
+        bp = float(bp_entry.get())
+        chol = float(chol_entry.get())
+        sample = [[age, bp, chol]]
+        prediction = model.predict(sample)[0]
+        result = "Diabetes: YES" if prediction == 1 else "Diabetes: NO"
+        messagebox.showinfo("Prediction Result", result)
+    except ValueError:
+        messagebox.showerror("Error", "Please enter valid numeric values.")
+
+# Button
+predict_btn = tk.Button(root, text="Predict", command=predict_disease)
+predict_btn.grid(row=3, column=0, columnspan=2)
+fig, ax = plt.subplots(figsize=(5,3))
+colors = ['red' if d==1 else 'green' for d in data["Diabetes"]]
+ax.scatter(data["Age"], data["Cholesterol"], c=colors)
+ax.set_xlabel("Age")
+ax.set_ylabel("Cholesterol")
+ax.set_title("Disease Data Visualization (Red=Diabetes, Green=No)")
+
+canvas = FigureCanvasTkAgg(fig, master=root)
+canvas.draw()
+canvas.get_tk_widget().grid(row=4, column=0, columnspan=2)
+
+root.mainloop()
